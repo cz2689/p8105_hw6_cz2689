@@ -121,8 +121,8 @@ Only a few cities have adjusted odds ratio for solving homicides comparing male 
 ```{r, message = FALSE}
 p3 = read_csv(file = "./data/birthweight.csv") %>% 
      janitor::clean_names() %>%
-  drop_na(smoken) %>% 
-  drop_na(wtgain)
+  mutate(babysex = as.factor(babysex)) %>% 
+  drop_na(smoken, wtgain)
 ```
 Since the two variables that I am using are all treated as continuous variable, I will not be convert them to factor variable. Just in case, I drop all the missing value among them.  
 
