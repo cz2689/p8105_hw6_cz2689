@@ -118,15 +118,18 @@ Only a few cities have adjusted odds ratio for solving homicides comparing male 
 # Problem 3
 
 ## Data import and tidy
-```{r}
+```{r, message = FALSE}
 p3 = read_csv(file = "./data/birthweight.csv") %>% 
-     janitor::clean_names()
+     janitor::clean_names() %>%
+  drop_na(smoken) %>% 
+  drop_na(wtgain)
 ```
+Since the two variables that I am using are all treated as continuous variable, I will not be convert them to factor variable. Just in case, I drop all the missing value among them.  
 
 ## Model Building 
-According to CDC, cigarettes smoking behavior of mother has a role in child birth weight. I will use `smoken` average number of cigarettes smoked per day during pregnancy as my main predictor to build my model. 
-```{r}
-linear_mod = lm(bwt ~ smoken, data = p3)
+According to CDC, cigarettes smoking behavior of mother has a role in child birth weight. I will use `smoken` average number of cigarettes smoked per day during pregnancy as my predictor to build my model. Also, I will use `wtgain` mother’s weight gain during pregnancy (pounds). This variable might suggest how well the mother's diets are during pregnancy. 
+```{r, message = FALSE}
+linear_mod = lm(bwt ~ smoken + wtgain, data = p3)
 
 p3 %>% 
   add_predictions(linear_mod) %>% 
@@ -136,7 +139,7 @@ p3 %>%
 ```
 
 ## Cross Validation
-```{r}
+```{r, message = FALSE}
 cv_df =
   crossv_mc(p3, 100) %>% 
   mutate(
@@ -146,7 +149,7 @@ cv_df =
 cv_df = 
   cv_df %>% 
   mutate(
-    my_mod = map(train, ~lm(bwt ~ smoken, data = .x)),
+    my_mod = map(train, ~lm(bwt ~ smoken + wtgain, data = .x)),
     alt_mod1 = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
     alt_mod2 = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead * blength
                               + bhead * babysex + blength * babysex
@@ -159,7 +162,7 @@ cv_df =
 ```
 
 ## Make comparison
-```{r}
+```{r, message = FALSE}
 cv_df %>% 
   select(starts_with("rmse")) %>% 
   pivot_longer(
@@ -171,6 +174,6 @@ cv_df %>%
   ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
 
-From the plot, we can see that `alt2` is better which is the one with the all of the interactions terms. It has much lower `rmse` value. 
+From the plot, we can see that `alt2` is better which is the one with the all of the interactions terms. It has much lower `rmse` value. My model is the worst, it has the highest `rmse`.
 
 
